@@ -5,7 +5,8 @@ import { BurnFilter } from './burn.filter';
 import { MutableFilter } from './mutable.filter';
 import { RenouncedFreezeFilter } from './renounced.filter';
 import { PoolSizeFilter } from './pool-size.filter';
-import { CHECK_IF_BURNED, CHECK_IF_FREEZABLE, CHECK_IF_MINT_IS_RENOUNCED, CHECK_IF_MUTABLE, CHECK_IF_SOCIALS, logger } from '../helpers';
+import { RugRatioFilter } from './rug-ratio.filter';
+import { CHECK_IF_BURNED, CHECK_IF_FREEZABLE, CHECK_IF_MINT_IS_RENOUNCED, CHECK_IF_MUTABLE, CHECK_IF_SOCIALS, CHECK_RUG_RATIO, logger } from '../helpers';
 
 export interface Filter {
   execute(poolKeysV4: LiquidityPoolKeysV4): Promise<FilterResult>;
@@ -31,6 +32,10 @@ export class PoolFilters {
   ) {
     if (CHECK_IF_BURNED) {
       this.filters.push(new BurnFilter(connection));
+    }
+
+    if (CHECK_RUG_RATIO) {
+      this.filters.push(new RugRatioFilter());
     }
 
     if (CHECK_IF_MINT_IS_RENOUNCED || CHECK_IF_FREEZABLE) {

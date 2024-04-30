@@ -93,6 +93,7 @@ Note: When using snipe list filters below will be disabled.
   - Set to zero to disable filters.
 - `CONSECUTIVE_FILTER_MATCHES` - How many times in a row pool needs to match the filters.
   - This is useful because when pool is burned (and rugged), other filters may not report the same behavior. eg. pool size may still have old value
+- `CHECK_RUG_RATIO` - Set to `true` to buy tokens only if gmgn.ai returns a Rug_Ratio level of 0.
 - `CHECK_IF_MUTABLE` - Set to `true` to buy tokens only if their metadata are not mutable.
 - `CHECK_IF_SOCIALS` - Set to `true` to buy tokens only if they have at least 1 social.
 - `CHECK_IF_MINT_IS_RENOUNCED` - Set to `true` to buy tokens only if their mint is renounced.
