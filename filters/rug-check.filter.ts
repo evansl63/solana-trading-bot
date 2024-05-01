@@ -21,8 +21,8 @@ export class RugCheckFilter implements Filter {
         return { ok: false, message: 'RugCheck -> Liquidity pool isnt burnt' };
       }
 
-      if (data.code === 0 && data.data && data.data.token && data.data.token.top_10_holder_rate > 0.65) {
-        return { ok: false, message: 'RugCheck -> Top 10 holders greater than 65%' };
+      if (data.code === 0 && data.data && data.data.token && data.data.token.top_10_holder_rate > 0.50) {
+        return { ok: false, message: 'RugCheck -> Top 10 holders greater than 50%' };
       }
 
       if (data.code === 0 && data.data && data.data.token && data.data.token.renounced_mint < 1) {
@@ -31,6 +31,10 @@ export class RugCheckFilter implements Filter {
       
       if (data.code === 0 && data.data && data.data.token && data.data.token.renounced_freeze_account < 1) {
         return { ok: false, message: 'RugCheck -> blacklist is not frozen' };
+      }
+
+      if (data.code === 0 && data.data && data.data.token && data.data.token.volume_5m < 1000) {
+        return { ok: false, message: 'RugCheck -> 5m volume is less than 1000' };
       }
 
       return { ok: true };
