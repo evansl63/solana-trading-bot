@@ -6,7 +6,8 @@ import { MutableFilter } from './mutable.filter';
 import { RenouncedFreezeFilter } from './renounced.filter';
 import { PoolSizeFilter } from './pool-size.filter';
 import { RugCheckFilter } from './rug-check.filter';
-import { CHECK_IF_BURNED, CHECK_IF_FREEZABLE, CHECK_IF_MINT_IS_RENOUNCED, CHECK_IF_MUTABLE, CHECK_IF_SOCIALS, CHECK_IF_RUG, logger } from '../helpers';
+import { RiskLevelFilter } from './risk-level.filter';
+import { CHECK_IF_BURNED, CHECK_IF_FREEZABLE, CHECK_IF_MINT_IS_RENOUNCED, CHECK_IF_MUTABLE, CHECK_IF_SOCIALS, CHECK_IF_RUG, CHECK_GMGN, logger } from '../helpers';
 
 export interface Filter {
   execute(poolKeysV4: LiquidityPoolKeysV4): Promise<FilterResult>;
@@ -35,6 +36,10 @@ export class PoolFilters {
     }
 
     if (CHECK_IF_RUG) {
+      this.filters.push(new RiskLevelFilter(connection));
+    }
+
+    if (CHECK_GMGN) {
       this.filters.push(new RugCheckFilter());
     }
 

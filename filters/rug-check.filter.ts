@@ -13,6 +13,10 @@ export class RugCheckFilter implements Filter {
         return { ok: false, message: 'RugCheck -> Token has a rug_ratio greater than 0' };
       }
 
+      if (data.code === 0 && data.data && data.data.token && data.data.is_show_alert == 'true') {
+        return { ok: false, message: 'RugCheck -> Token has a warning alert' };
+      }
+
       if (data.code === 0 && data.data && data.data.token && data.data.token.burn_ratio < 0.8) {
         return { ok: false, message: 'RugCheck -> Liquidity pool isnt burnt' };
       }
