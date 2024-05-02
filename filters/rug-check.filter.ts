@@ -37,6 +37,19 @@ export class RugCheckFilter implements Filter {
         return { ok: false, message: 'RugCheck -> 5m volume is less than 1000' };
       }
 
+      if (data.code === 0 && data.data && data.data.token) {
+        const price5m = data.data.token.price_5m;
+        const price1h = data.data.token.price_1h;
+
+        if (price5m && price1h) {
+          const priceDrop = (price5m - price1h) / price5m;
+
+          if (priceDrop > -0.19) {
+            return { ok: false, message: `PriceChange -> Token 5min price hasn't dropped by 20% Current: ${(priceDrop * 100).toFixed(2)}%` };
+          }
+        }
+      }
+
       return { ok: true };
     } catch (error) {
       logger.error({ mint: poolKeys.baseMint }, 'RugCheck -> Failed to check rug details');
