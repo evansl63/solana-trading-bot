@@ -386,9 +386,6 @@ export class Bot {
   }
 
   private async sellfilterMatch(poolKeys: LiquidityPoolKeysV4) {
-    if (this.config.filterCheckInterval === 0 || this.config.filterCheckDuration === 0) {
-      return true;
-    }
 
     const filters = new SellFilters(this.connection, {
       quoteToken: this.config.quoteToken,
@@ -396,7 +393,7 @@ export class Bot {
       maxPoolSize: this.config.maxPoolSize,
     });
 
-    const timesToCheck = this.config.filterCheckDuration / this.config.filterCheckInterval;
+    const timesToCheck = 2;
     let timesChecked = 0;
     let matchCount = 0;
 
@@ -418,7 +415,7 @@ export class Bot {
           matchCount = 0;
         }
 
-        await sleep(this.config.filterCheckInterval);
+        await sleep(5000);
       } finally {
         timesChecked++;
       }
@@ -432,12 +429,12 @@ export class Bot {
       return true;
     }
 
-          const match = await this.sellfilterMatch(poolKeys);
+    const match = await this.sellfilterMatch(poolKeys);
 
-      if (!match) {
-        logger.trace({ mint: poolKeys.baseMint.toString() }, `Skipping buy because pool doesn't match filters`);
-        return;
-      }
+    if (match) {
+      logger.trace({ mint: poolKeys.baseMint.toString() }, `Rug Alert! Selling token`);
+      return true;
+    }
 
     const timesToCheck = this.config.priceCheckDuration / this.config.priceCheckInterval;
     const profitFraction = this.config.quoteAmount.mul(this.config.takeProfit).numerator.div(new BN(100));
