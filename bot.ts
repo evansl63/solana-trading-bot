@@ -16,7 +16,7 @@ import {
 } from '@solana/spl-token';
 import { Liquidity, LiquidityPoolKeysV4, LiquidityStateV4, Percent, Token, TokenAmount } from '@raydium-io/raydium-sdk';
 import { MarketCache, PoolCache, SnipeListCache } from './cache';
-import { PoolFilters } from './filters';
+import { PoolFilters, SellFilters } from './filters';
 import { TransactionExecutor } from './transactions';
 import { createPoolKeys, logger, NETWORK, sleep } from './helpers';
 import { Semaphore } from 'async-mutex';
@@ -385,10 +385,59 @@ export class Bot {
     return false;
   }
 
+  private async sellfilterMatch(poolKeys: LiquidityPoolKeysV4) {
+    if (this.config.filterCheckInterval === 0 || this.config.filterCheckDuration === 0) {
+      return true;
+    }
+
+    const filters = new SellFilters(this.connection, {
+      quoteToken: this.config.quoteToken,
+      minPoolSize: this.config.minPoolSize,
+      maxPoolSize: this.config.maxPoolSize,
+    });
+
+    const timesToCheck = this.config.filterCheckDuration / this.config.filterCheckInterval;
+    let timesChecked = 0;
+    let matchCount = 0;
+
+    do {
+      try {
+        const shouldSell = await filters.execute(poolKeys);
+
+        if (shouldSell) {
+          matchCount++;
+
+          if (this.config.consecutiveMatchCount <= matchCount) {
+            logger.debug(
+              { mint: poolKeys.baseMint.toString() },
+              `Filter match ${matchCount}/${this.config.consecutiveMatchCount}`,
+            );
+            return true;
+          }
+        } else {
+          matchCount = 0;
+        }
+
+        await sleep(this.config.filterCheckInterval);
+      } finally {
+        timesChecked++;
+      }
+    } while (timesChecked < timesToCheck);
+
+    return false;
+  }
+
   private async waitForSellSignal(amountIn: TokenAmount, poolKeys: LiquidityPoolKeysV4) {
     if (this.config.priceCheckDuration === 0 || this.config.priceCheckInterval === 0) {
       return true;
     }
+
+          const match = await this.sellfilterMatch(poolKeys);
+
+      if (!match) {
+        logger.trace({ mint: poolKeys.baseMint.toString() }, `Skipping buy because pool doesn't match filters`);
+        return;
+      }
 
     const timesToCheck = this.config.priceCheckDuration / this.config.priceCheckInterval;
     const profitFraction = this.config.quoteAmount.mul(this.config.takeProfit).numerator.div(new BN(100));

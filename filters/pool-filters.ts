@@ -35,14 +35,6 @@ export class PoolFilters {
       this.filters.push(new BurnFilter(connection));
     }
 
-    if (CHECK_IF_RUG) {
-      this.filters.push(new RiskLevelFilter(connection));
-    }
-
-    if (CHECK_GMGN) {
-      this.filters.push(new RugCheckFilter());
-    }
-
     if (CHECK_IF_MINT_IS_RENOUNCED || CHECK_IF_FREEZABLE) {
       this.filters.push(new RenouncedFreezeFilter(connection, CHECK_IF_MINT_IS_RENOUNCED, CHECK_IF_FREEZABLE));
     }
@@ -73,5 +65,43 @@ export class PoolFilters {
     }
 
     return false;
+  }
+}
+
+export class SellFilters {
+  private readonly filters: Filter[] = [];
+
+  constructor(
+    readonly connection: Connection,
+    readonly args: PoolFilterArgs,
+  ) {
+
+    if (CHECK_IF_RUG) {
+      this.filters.push(new RiskLevelFilter(connection));
+    }
+
+    if (CHECK_GMGN) {
+      this.filters.push(new RugCheckFilter());
+    }
+
+  }
+
+  public async execute(poolKeys: LiquidityPoolKeysV4): Promise<boolean> {
+    if (this.filters.length === 0) {
+      return false;
+    }
+
+    const result = await Promise.all(this.filters.map((f) => f.execute(poolKeys)));
+    const pass = result.every((r) => r.ok);
+
+    if (pass) {
+      return false;
+    }
+
+    for (const filterResult of result.filter((r) => !r.ok)) {
+      logger.trace(filterResult.message);
+    }
+
+    return true;
   }
 }
