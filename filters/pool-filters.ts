@@ -7,7 +7,8 @@ import { RenouncedFreezeFilter } from './renounced.filter';
 import { PoolSizeFilter } from './pool-size.filter';
 import { RugCheckFilter } from './rug-check.filter';
 import { RiskLevelFilter } from './risk-level.filter';
-import { CHECK_IF_BURNED, CHECK_IF_FREEZABLE, CHECK_IF_MINT_IS_RENOUNCED, CHECK_IF_MUTABLE, CHECK_IF_SOCIALS, CHECK_IF_RUG, CHECK_GMGN, logger } from '../helpers';
+import { RatTraderFilter } from './rat-check.filter';
+import { CHECK_IF_BURNED, CHECK_IF_FREEZABLE, CHECK_IF_MINT_IS_RENOUNCED, CHECK_IF_MUTABLE, CHECK_IF_SOCIALS, CHECK_IF_RUG, CHECK_GMGN, CHECK_RATS, logger } from '../helpers';
 
 export interface Filter {
   execute(poolKeysV4: LiquidityPoolKeysV4): Promise<FilterResult>;
@@ -82,6 +83,40 @@ export class SellFilters {
 
     if (CHECK_GMGN) {
       this.filters.push(new RugCheckFilter());
+    }
+
+  }
+
+  public async execute(poolKeys: LiquidityPoolKeysV4): Promise<boolean> {
+    if (this.filters.length === 0) {
+      return false;
+    }
+
+    const result = await Promise.all(this.filters.map((f) => f.execute(poolKeys)));
+    const pass = result.every((r) => r.ok);
+
+    if (pass) {
+      return false;
+    }
+
+    for (const filterResult of result.filter((r) => !r.ok)) {
+      logger.trace(filterResult.message);
+    }
+
+    return true;
+  }
+}
+
+export class RatFilters {
+  private readonly filters: Filter[] = [];
+
+  constructor(
+    readonly connection: Connection,
+    readonly args: PoolFilterArgs,
+  ) {
+
+    if (CHECK_RATS) {
+      this.filters.push(new RatTraderFilter());
     }
 
   }

@@ -53,6 +53,7 @@ export const SELL_SLIPPAGE = Number(retrieveEnvVariable('SELL_SLIPPAGE', logger)
 export const SKIP_SELLING_IF_LOST_MORE_THAN = Number(retrieveEnvVariable('SKIP_SELLING_IF_LOST_MORE_THAN', logger));
 export const CHECK_IF_RUG = retrieveEnvVariable('CHECK_IF_RUG', logger) === 'true';
 export const CHECK_GMGN = retrieveEnvVariable('CHECK_GMGN', logger) === 'true';
+export const CHECK_RATS = retrieveEnvVariable('CHECK_RATS', logger) === 'true';
 
 // Filters
 export const FILTER_CHECK_INTERVAL = Number(retrieveEnvVariable('FILTER_CHECK_INTERVAL', logger));
