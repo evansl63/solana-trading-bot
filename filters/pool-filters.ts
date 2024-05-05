@@ -85,6 +85,10 @@ export class SellFilters {
       this.filters.push(new RugCheckFilter());
     }
 
+    if (CHECK_RATS) {
+      this.filters.push(new RatTraderFilter());
+    }
+
   }
 
   public async execute(poolKeys: LiquidityPoolKeysV4): Promise<boolean> {

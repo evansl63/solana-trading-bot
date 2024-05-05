@@ -96,7 +96,6 @@ Note: When using snipe list filters below will be disabled.
   - Set to zero to disable filters.
 - `CONSECUTIVE_FILTER_MATCHES` - How many times in a row pool needs to match the filters.
   - This is useful because when pool is burned (and rugged), other filters may not report the same behavior. eg. pool size may still have old value
-- `CHECK_IF_RUG` - Set to `true` to buy tokens only if gmgn.ai API check passes Degen Audit.
 - `CHECK_IF_MUTABLE` - Set to `true` to buy tokens only if their metadata are not mutable.
 - `CHECK_IF_SOCIALS` - Set to `true` to buy tokens only if they have at least 1 social.
 - `CHECK_IF_MINT_IS_RENOUNCED` - Set to `true` to buy tokens only if their mint is renounced.
@@ -106,6 +105,15 @@ Note: When using snipe list filters below will be disabled.
   - Set `0` to disable.
 - `MAX_POOL_SIZE` - Bot will buy only if the pool size is less than or equal the specified amount.
   - Set `0` to disable.
+
+#### Sell Filters
+
+Note: these filters are applied as part of the waitForSellSignal process, after any autoSellDelay timers.
+
+- `CHECK_GMGN` - Set to `true` to sell tokens immediately if gmgn.ai API check fails Degen Audit.
+- `CHECK_RATS` - Set to `true` to sell tokens immediately if rat holders are more than 50% (gmgn.ai API check).
+- `CHECK_IF_RUG` - Set to `true` to sell tokens immediately if rugcheck.xyz API check has a danger warning.
+
 
 ## Warp transactions (beta)
 

@@ -466,18 +466,6 @@ export class Bot {
     }
 
     if (this.config.autoSellDelay > 0) {
-      logger.debug(`Waiting 3000 ms before rat check`);
-      await sleep(3000);
-    }
-
-    const rat = await this.RatFilterMatch(poolKeys);
-
-    if (rat) {
-      logger.trace({ mint: poolKeys.baseMint.toString() }, `Rat Alert! Selling token`);
-      return true;
-    }
-
-    if (this.config.autoSellDelay > 0) {
       logger.debug(`Waiting for ${this.config.autoSellDelay} ms before sell`);
       await sleep(this.config.autoSellDelay);
     }

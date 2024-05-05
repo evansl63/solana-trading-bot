@@ -21,8 +21,8 @@ export class RugCheckFilter implements Filter {
       //  return { ok: false, message: 'GMGN Check -> Liquidity pool isnt burnt' };
       //}
 
-      if (data.code === 0 && data.data && data.data.token && data.data.token.top_10_holder_rate > 0.80) {
-        return { ok: false, message: 'GMGN Check -> Top 10 holders greater than 80%' };
+      if (data.code === 0 && data.data && data.data.token && data.data.token.top_10_holder_rate > 0.5) {
+        return { ok: false, message: 'GMGN Check -> Top 10 holders greater than 50%' };
       }
 
       if (data.code === 0 && data.data && data.data.token && data.data.token.renounced_mint < 1) {

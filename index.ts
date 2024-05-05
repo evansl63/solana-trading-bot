@@ -48,6 +48,9 @@ import {
   CHECK_IF_SOCIALS,
   TRAILING_STOP_LOSS,
   SKIP_SELLING_IF_LOST_MORE_THAN,
+  CHECK_IF_RUG,
+  CHECK_GMGN,
+  CHECK_RATS,
 } from './helpers';
 import { version } from './package.json';
 import { WarpTransactionExecutor } from './transactions/warp-transaction-executor';
@@ -133,6 +136,9 @@ function printDetails(wallet: Keypair, quoteToken: Token, bot: Bot) {
     logger.info(`Check burned: ${CHECK_IF_BURNED}`);
     logger.info(`Check mutable: ${CHECK_IF_MUTABLE}`);
     logger.info(`Check socials: ${CHECK_IF_SOCIALS}`);
+    logger.info(`Check Rat owners: ${CHECK_RATS}`);
+    logger.info(`GMGN Degen Audit: ${CHECK_GMGN}`);
+    logger.info(`RugCheck: ${CHECK_IF_RUG}`);
     logger.info(`Min pool size: ${botConfig.minPoolSize.toFixed()}`);
     logger.info(`Max pool size: ${botConfig.maxPoolSize.toFixed()}`);
   }
