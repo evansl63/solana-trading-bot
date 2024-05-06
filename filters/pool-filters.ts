@@ -69,7 +69,7 @@ export class PoolFilters {
   }
 }
 
-export class SellFilters {
+export class BuyFilters {
   private readonly filters: Filter[] = [];
 
   constructor(
@@ -100,47 +100,15 @@ export class SellFilters {
     const pass = result.every((r) => r.ok);
 
     if (pass) {
-      return false;
+      return true;
     }
 
     for (const filterResult of result.filter((r) => !r.ok)) {
       logger.trace(filterResult.message);
     }
 
-    return true;
+    return false;
   }
 }
 
-export class RatFilters {
-  private readonly filters: Filter[] = [];
 
-  constructor(
-    readonly connection: Connection,
-    readonly args: PoolFilterArgs,
-  ) {
-
-    if (CHECK_RATS) {
-      this.filters.push(new RatTraderFilter());
-    }
-
-  }
-
-  public async execute(poolKeys: LiquidityPoolKeysV4): Promise<boolean> {
-    if (this.filters.length === 0) {
-      return false;
-    }
-
-    const result = await Promise.all(this.filters.map((f) => f.execute(poolKeys)));
-    const pass = result.every((r) => r.ok);
-
-    if (pass) {
-      return false;
-    }
-
-    for (const filterResult of result.filter((r) => !r.ok)) {
-      logger.trace(filterResult.message);
-    }
-
-    return true;
-  }
-}

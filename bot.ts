@@ -16,14 +16,13 @@ import {
 } from '@solana/spl-token';
 import { Liquidity, LiquidityPoolKeysV4, LiquidityStateV4, Percent, Token, TokenAmount } from '@raydium-io/raydium-sdk';
 import { MarketCache, PoolCache, SnipeListCache } from './cache';
-import { PoolFilters, RatFilters, SellFilters } from './filters';
+import { BuyFilters, PoolFilters } from './filters';
 import { TransactionExecutor } from './transactions';
 import { createPoolKeys, logger, NETWORK, sleep } from './helpers';
 import { Semaphore } from 'async-mutex';
 import BN from 'bn.js';
 import { WarpTransactionExecutor } from './transactions/warp-transaction-executor';
 import { JitoTransactionExecutor } from './transactions/jito-rpc-transaction-executor';
-import { RatTraderFilter } from './filters/rat-check.filter';
 
 export interface BotConfig {
   wallet: Keypair;
@@ -133,6 +132,13 @@ export class Bot {
           logger.trace({ mint: poolKeys.baseMint.toString() }, `Skipping buy because pool doesn't match filters`);
           return;
         }
+      }
+
+      const match = await this.buyfilterMatch(poolKeys);
+
+      if (match) {
+        logger.trace({ mint: poolKeys.baseMint.toString() }, `Token doesnt meet buy requirements`);
+        return true;
       }
 
       for (let i = 0; i < this.config.maxBuyRetries; i++) {
@@ -381,84 +387,44 @@ export class Bot {
     return false;
   }
 
-  private async sellfilterMatch(poolKeys: LiquidityPoolKeysV4) {
+  private async buyfilterMatch(poolKeys: LiquidityPoolKeysV4) {
 
-    const filters = new SellFilters(this.connection, {
+    const filters = new BuyFilters(this.connection, {
       quoteToken: this.config.quoteToken,
       minPoolSize: this.config.minPoolSize,
       maxPoolSize: this.config.maxPoolSize,
     });
-
-    const timesToCheck = 2;
+    
+    const timesToCheck = 60;
     let timesChecked = 0;
     let matchCount = 0;
-
+    
     do {
       try {
-        const shouldSell = await filters.execute(poolKeys);
-
-        if (shouldSell) {
-          matchCount++;
-
-          if (this.config.consecutiveMatchCount <= matchCount) {
-            logger.debug(
-              { mint: poolKeys.baseMint.toString() },
-              `Filter match ${matchCount}/${this.config.consecutiveMatchCount}`,
-            );
-            return true;
-          }
-        } else {
-          matchCount = 0;
+      const shouldBuy = await filters.execute(poolKeys);
+    
+      if (shouldBuy) {
+        matchCount++;
+    
+        if (this.config.consecutiveMatchCount <= matchCount) {
+        logger.debug(
+          { mint: poolKeys.baseMint.toString() },
+          `Filter match ${matchCount}/${this.config.consecutiveMatchCount}`,
+        );
+        return true;
         }
-
-        await sleep(1000);
+      } else {
+        matchCount = 0;
+      }
+    
+      await sleep(5000);
       } finally {
-        timesChecked++;
+      timesChecked++;
       }
     } while (timesChecked < timesToCheck);
-
+    
     return false;
   }
-
-  private async RatFilterMatch(poolKeys: LiquidityPoolKeysV4) {
-
-    const filters = new RatFilters(this.connection, {
-      quoteToken: this.config.quoteToken,
-      minPoolSize: this.config.minPoolSize,
-      maxPoolSize: this.config.maxPoolSize,
-    });
-
-    const timesToCheck = 2;
-    let timesChecked = 0;
-    let matchCount = 0;
-
-    do {
-      try {
-        const shouldSell = await filters.execute(poolKeys);
-
-        if (shouldSell) {
-          matchCount++;
-
-          if (this.config.consecutiveMatchCount <= matchCount) {
-            logger.debug(
-              { mint: poolKeys.baseMint.toString() },
-              `Filter match ${matchCount}/${this.config.consecutiveMatchCount}`,
-            );
-            return true;
-          }
-        } else {
-          matchCount = 0;
-        }
-
-        await sleep(500);
-      } finally {
-        timesChecked++;
-      }
-    } while (timesChecked < timesToCheck);
-
-    return false;
-  }
-
 
   private async waitForSellSignal(amountIn: TokenAmount, poolKeys: LiquidityPoolKeysV4) {
     if (this.config.priceCheckDuration === 0 || this.config.priceCheckInterval === 0) {
@@ -468,13 +434,6 @@ export class Bot {
     if (this.config.autoSellDelay > 0) {
       logger.debug(`Waiting for ${this.config.autoSellDelay} ms before sell`);
       await sleep(this.config.autoSellDelay);
-    }
-
-    const match = await this.sellfilterMatch(poolKeys);
-
-    if (match) {
-      logger.trace({ mint: poolKeys.baseMint.toString() }, `Rug Alert! Selling token`);
-      return true;
     }
 
     const timesToCheck = this.config.priceCheckDuration / this.config.priceCheckInterval;

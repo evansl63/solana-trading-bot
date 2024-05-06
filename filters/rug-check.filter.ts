@@ -17,9 +17,9 @@ export class RugCheckFilter implements Filter {
         return { ok: false, message: 'GMGN Check -> Token has a warning alert' };
       }
 
-      //if (data.code === 0 && data.data && data.data.token && data.data.token.burn_ratio < 0.8) {
-      //  return { ok: false, message: 'GMGN Check -> Liquidity pool isnt burnt' };
-      //}
+      if (data.code === 0 && data.data && data.data.token && data.data.token.burn_ratio < 0.8) {
+        return { ok: false, message: 'GMGN Check -> Liquidity pool isnt burnt' };
+      }
 
       if (data.code === 0 && data.data && data.data.token && data.data.token.top_10_holder_rate > 0.5) {
         return { ok: false, message: 'GMGN Check -> Top 10 holders greater than 50%' };
@@ -33,9 +33,9 @@ export class RugCheckFilter implements Filter {
         return { ok: false, message: 'GMGN Check -> blacklist is not frozen' };
       }
 
-      //if (data.code === 0 && data.data && data.data.token && data.data.token.volume_5m < 1000) {
-      //  return { ok: false, message: 'GMGN Check -> 5m volume is less than 1000' };
-      //}
+      if (data.code === 0 && data.data && data.data.token && data.data.token.buy_volume_1m < 1000) {
+        return { ok: false, message: 'GMGN Check -> 5m buy volume is less than 1000' };
+      }
 
       return { ok: true };
     } catch (error) {
