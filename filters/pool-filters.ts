@@ -47,6 +47,11 @@ export class PoolFilters {
     if (!args.minPoolSize.isZero() || !args.maxPoolSize.isZero()) {
       this.filters.push(new PoolSizeFilter(connection, args.quoteToken, args.minPoolSize, args.maxPoolSize));
     }
+
+    if (CHECK_IF_RUG) {
+      this.filters.push(new RiskLevelFilter(connection));
+    }
+
   }
 
   public async execute(poolKeys: LiquidityPoolKeysV4): Promise<boolean> {
@@ -76,10 +81,6 @@ export class BuyFilters {
     readonly connection: Connection,
     readonly args: PoolFilterArgs,
   ) {
-
-    if (CHECK_IF_RUG) {
-      this.filters.push(new RiskLevelFilter(connection));
-    }
 
     if (CHECK_GMGN) {
       this.filters.push(new RugCheckFilter());

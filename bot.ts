@@ -100,12 +100,6 @@ export class Bot {
       logger.debug({ mint: poolState.baseMint.toString() }, `Skipping buy because token is not in a snipe list`);
       return;
     }
-
-    if (this.config.autoBuyDelay > 0) {
-      logger.debug({ mint: poolState.baseMint }, `Waiting for ${this.config.autoBuyDelay} ms before buy`);
-      await sleep(this.config.autoBuyDelay);
-    }
-
     const numberOfActionsBeingProcessed =
       this.config.maxTokensAtTheTime - this.semaphore.getValue() + this.sellExecutionCount;
     if (this.semaphore.isLocked() || numberOfActionsBeingProcessed >= this.config.maxTokensAtTheTime) {
@@ -132,6 +126,11 @@ export class Bot {
           logger.trace({ mint: poolKeys.baseMint.toString() }, `Skipping buy because pool doesn't match filters`);
           return;
         }
+      }
+
+      if (this.config.autoBuyDelay > 0) {
+        logger.debug({ mint: poolState.baseMint }, `Waiting for ${this.config.autoBuyDelay} ms before buy`);
+        await sleep(this.config.autoBuyDelay);
       }
 
       const match = await this.buyfilterMatch(poolKeys);
